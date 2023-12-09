@@ -22,12 +22,12 @@ def patcher_def(input_apk,name_apk):
         output_apk = Path(os.path.join(patched_folder,app_name))
     #COMMAND
     options = {
-    "Youtube": lambda: f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}" --signer "ReVanced_ME" --include "Custom branding"'\
+    "Youtube": lambda: f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}" --include "Custom branding"'\
         f' -m "{tools_folder}\{tools_files[1]}"   "{input_apk}"'}
     default_command = f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'\
-        f' --signer "ReVanced_ME" -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"'
+        f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"'
     command = options.get(name_apk, lambda: default_command)()
-    print(command)
+    #print(command)
     run_command_gui(command)
 
 def run_command_gui(command):
@@ -45,31 +45,26 @@ def run_command_gui(command):
                 delete_cache()
                 break
         
-        window['Cerrar'].update()
+        window['Close'].update()
+        delete_cache()
         process.terminate()
     
     try:
         threading.Thread(target=execute_command, daemon=True).start()
-        
         layout = [
             [sg.Output(size=(60, 20), key='-OUTPUT-', pad=(0, 0))],
-            [sg.Button('Cerrar'), sg.Button('Patched Folder', key='-PATCHEDFOLDER-', pad=((270, 0), (0, 0)))]
+            [sg.Button('Close'), sg.Button('Patched Folder', key='-PATCHEDFOLDER-', pad=((270, 0), (0, 0)))]
         ]
-        
-        window = sg.Window('Ejecutar Comando', layout, finalize=True)
-        
+        window = sg.Window('Commmand', layout, finalize=True)
         while True:
             event, _ = window.read()
-            if event == 'Cerrar' or event == sg.WINDOW_CLOSED:
-                delete_cache()
+            if event == 'Close' or event == sg.WINDOW_CLOSED:
                 break
-            
             if event == '-PATCHEDFOLDER-':
                 subprocess.run(['explorer', patched_folder])
-        
-        window['Cerrar'].update(disabled=True)
+        window['Close'].update(disabled=True)
         window.close()
-    
+        
     except subprocess.CalledProcessError as e:
         sg.popup_error('Error: ', e.stderr)
 
@@ -81,5 +76,6 @@ def delete_cache():
             os.remove(file)
         elif cache.endswith("-resource-cache"):
             file = Path(os.path.join(patched_folder,cache))
-            shutil.rmtree(file)
-    
+            shutil.rmtree(file)#Shutil to delete folder because when a folder has files os.remove is dumb
+        else:
+            None

@@ -51,21 +51,15 @@ def main_gui():
             check_update()
  
         if event == '-PATCH-':
-            file_path = sg.popup_get_file('Open APK file', file_types=(("APK FILE", "*.apk"),))
             if values['-dropdown-'] == "":
-                sg.popup_get_text("Explain your feelings that led you to make this decision.")   
+                sg.popup_get_text("Explain your feelings that led you to make this decision.")
             else:
-                file_path
+                file_path = sg.popup_get_file('Open APK file', file_types=(("APK FILE", "*.apk"),)); file_path
                 if file_path != None :
-                    print(file_path)
-                    patcher_def(file_path,values['-dropdown-'] )     
+                    patcher_def(file_path,values['-dropdown-'] )
                 else:
                     sg.popup_get_text("Explain your feelings that led you to make this decision.")   
-                    None
-
-                
-        
-
+                    
     window.close()
 
 main_gui()
