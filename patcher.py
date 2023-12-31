@@ -1,36 +1,63 @@
 import os
 import shutil
-from path_all import paths
 import subprocess
+import threading
 import PySimpleGUI as sg
 from pathlib import Path
-import threading
 
 
-def patcher_def(input_apk,name_apk):
+def paths():
+    revanced_folder = Path(os.environ["USERPROFILE"]) / "Documents" / "Simple Revanced"
+    tools_folder = revanced_folder / "Tools"
+    patched_folder = revanced_folder/ "Patched APK"
+    folders = [revanced_folder,tools_folder,patched_folder]
+    return folders
+
+
+def made_command(input_apk,name_app):
+    #Get Paths folders
     tools_folder = paths()[1]
     patched_folder = paths()[2]
-    tools_files = os.listdir(tools_folder)
+    tools_files = os.listdir(tools_folder) #Revanced tools files
     #APK NAME
-    apk_number = 0
-    app_name = f'{name_apk}_Revanced_'+str(apk_number)+".apk"
-    output_apk = Path(os.path.join(patched_folder,app_name))
-    #Check if file exist to modify the name
-    while output_apk.is_file():
-        apk_number += 1
-        app_name = f'{name_apk}_Revanced_'+str(apk_number)+".apk"
-        output_apk = Path(os.path.join(patched_folder,app_name))
+    number_apk = 0
+    output_apk = Path(patched_folder) / f'{name_app}_Revanced_{number_apk}.apk'
+
+    while output_apk.exists():
+        number_apk += 1
+        output_apk = Path(patched_folder) / f'{name_app}_Revanced_{number_apk}.apk'
+
     #COMMAND
-    options = {
-    "Youtube": lambda: f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}" --include "Custom branding"'\
-        f' -m "{tools_folder}\{tools_files[1]}"   "{input_apk}"'}
-    default_command = f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'\
-        f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"'
-    command = options.get(name_apk, lambda: default_command)()
+    match name_app:
+        case 'Youtube':
+            command = (f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'
+            + f' --include "Custom branding" -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"')
+
+        case 'Youtube Music':
+            command = (f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'
+            + f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"')
+
+        case 'Tiktok':
+            command = (f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'
+            + f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"')
+
+        case 'Twitch':
+            command = (f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'
+            + f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"')
+        
+        case 'Instagram':
+            command = (f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'
+            + f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"')
+
+        case _:
+            command = (f'java -jar "{tools_folder}\{tools_files[0]}" patch -p -o "{output_apk}" -b "{tools_folder}\{tools_files[2]}"'
+            + f' -m "{tools_folder}\{tools_files[1]}"  "{input_apk}"')
     #print(command)
     run_command_gui(command)
 
+
 def run_command_gui(command):
+    #I made this with chat-gpt to be honest, no really understand how it works.(just: run_command_gui)
     patched_folder = paths()[2]
     
     def execute_command():
@@ -42,11 +69,9 @@ def run_command_gui(command):
             if output:
                 window['-OUTPUT-'].print(output.strip())
             else:
-                delete_cache()
                 break
         
         window['Close'].update()
-        delete_cache()
         process.terminate()
     
     try:
@@ -59,6 +84,7 @@ def run_command_gui(command):
         while True:
             event, _ = window.read()
             if event == 'Close' or event == sg.WINDOW_CLOSED:
+                delete_cache()
                 break
             if event == '-PATCHEDFOLDER-':
                 subprocess.run(['explorer', patched_folder])
@@ -68,14 +94,15 @@ def run_command_gui(command):
     except subprocess.CalledProcessError as e:
         sg.popup_error('Error: ', e.stderr)
 
+
 def delete_cache():
+    #Delete cache-files 
     patched_folder = paths()[2]
     for cache in os.listdir(patched_folder):
         if cache.endswith(".keystore") or cache.endswith(".json"):
-            file = Path(os.path.join(patched_folder,cache))
+            file = Path(patched_folder / cache)
             os.remove(file)
         elif cache.endswith("-resource-cache"):
-            file = Path(os.path.join(patched_folder,cache))
+            file = Path(patched_folder / cache)
             shutil.rmtree(file)#Shutil to delete folder because when a folder has files os.remove is dumb
-        else:
-            None
+
